@@ -25,8 +25,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef TURTLEGRAPHICS_TURTLE_HPP
-#define TURTLEGRAPHICS_TURTLE_HPP
+#ifndef TURTLEGRAPHICS_YATG_HPP
+#define TURTLEGRAPHICS_YATG_HPP
 
 
 #include <cstdbool>
@@ -393,4 +393,4 @@ public:
 };
 
 
-#endif //TURTLEGRAPHICS_TURTLE_HPP
+#endif //TURTLEGRAPHICS_YATG_HPP

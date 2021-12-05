@@ -3,4 +3,4 @@ project(TurtleGraphics)
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_library(TurtleGraphics include/yatg/turtle.cpp include/yatg/turtle.hpp)
+add_library(TurtleGraphics include/yatg/yatg.cpp include/yatg/yatg.hpp)

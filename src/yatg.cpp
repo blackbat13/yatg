@@ -29,7 +29,7 @@
 
 */
 
-#include "yatg.hpp"
+#include "../include/yatg/yatg.hpp"
 
 
 Turtle::Turtle(int width, int height)

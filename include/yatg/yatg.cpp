@@ -34,30 +34,30 @@
 
 Turtle::Turtle(int width, int height)
 {
-    num_pixels_out_of_bounds = 0;
+    numPixelsOutOfBounds = 0;
 
-    int total_size = sizeof(rgb_t) * width * height;
+    auto total_size = sizeof(rgb_t) * width * height;
 
     // free previous image array if necessary
-    if (main_turtle_image != NULL) {
-        free(main_turtle_image);
-        main_turtle_image = NULL;
+    if (mainTurtleImage != nullptr) {
+        free(mainTurtleImage);
+        mainTurtleImage = nullptr;
     }
 
     // allocate new image and initialize it to white
-    main_turtle_image = (rgb_t*)malloc(total_size);
-    if (main_turtle_image == NULL) {
+    mainTurtleImage = (rgb_t*)malloc(total_size);
+    if (mainTurtleImage == nullptr) {
         fprintf(stderr, "Can't allocate memory for turtle image.\n");
         exit(EXIT_FAILURE);
     }
-    memset(main_turtle_image, 255, total_size);
+    memset(mainTurtleImage, 255, total_size);
 
     // save field size for later
-    main_field_width = width;
-    main_field_height = height;
+    mainFieldWidth = width;
+    mainFieldHeight = height;
 
     // disable video
-    main_field_save_frames = false;
+    mainFieldSaveFrames = false;
 
     // reset turtle position and color
     reset();
@@ -66,47 +66,47 @@ Turtle::Turtle(int width, int height)
 void Turtle::reset()
 {
     // move turtle to middle of the field
-    main_turtle.xpos = 0.0;
-    main_turtle.ypos = 0.0;
+    mainTurtle.xpos = 0.0;
+    mainTurtle.ypos = 0.0;
 
     // orient to the right (0 deg)
-    main_turtle.heading = 0.0;
+    mainTurtle.heading = 0.0;
 
     // default draw color is black
-    main_turtle.pen_color.red = 0;
-    main_turtle.pen_color.green = 0;
-    main_turtle.pen_color.blue = 0;
+    mainTurtle.penColor.red = 0;
+    mainTurtle.penColor.green = 0;
+    mainTurtle.penColor.blue = 0;
 
     // default fill color is black
-    main_turtle.fill_color.red = 0;
-    main_turtle.fill_color.green = 255;
-    main_turtle.fill_color.blue = 0;
+    mainTurtle.fillColor.red = 0;
+    mainTurtle.fillColor.green = 255;
+    mainTurtle.fillColor.blue = 0;
 
     // default pen position is down
-    main_turtle.pendown = true;
+    mainTurtle.pendown = true;
 
     // default fill status is off
-    main_turtle.filled = false;
-    main_turtle_poly_vertex_count = 0;
+    mainTurtle.filled = false;
+    mainTurtlePolyVertexCount = 0;
 }
 
 void Turtle::backup() {
-    backup_turtle = main_turtle;
+    backupTurtle = mainTurtle;
 }
 
 void Turtle::restore() {
-    main_turtle = backup_turtle;
+    mainTurtle = backupTurtle;
 }
 
 void Turtle::forward(int pixels)
 {
     // calculate (x,y) movement vector from heading
-    double radians = main_turtle.heading * PI / 180.0;
+    double radians = mainTurtle.heading * M_PI / 180.0;
     double dx = cos(radians) * pixels;
     double dy = sin(radians) * pixels;
 
     // delegate to another method to actually move
-    goTo(main_turtle.xpos + dx, main_turtle.ypos + dy);
+    goTo(mainTurtle.xpos + dx, mainTurtle.ypos + dy);
 }
 
 void Turtle::backward(int pixels)
@@ -130,13 +130,13 @@ void Turtle::strafeRight(int pixels) {
 void Turtle::turnLeft(double angle)
 {
     // rotate turtle heading
-    main_turtle.heading += angle;
+    mainTurtle.heading += angle;
 
     // constrain heading to range: [0.0, 360.0)
-    if (main_turtle.heading < 0.0) {
-        main_turtle.heading += 360.0;
-    } else if (main_turtle.heading >= 360.0) {
-        main_turtle.heading -= 360.0;
+    if (mainTurtle.heading < 0.0) {
+        mainTurtle.heading += 360.0;
+    } else if (mainTurtle.heading >= 360.0) {
+        mainTurtle.heading -= 360.0;
     }
 }
 
@@ -148,18 +148,18 @@ void Turtle::turnRight(double angle)
 
 void Turtle::penUp()
 {
-    main_turtle.pendown = false;
+    mainTurtle.pendown = false;
 }
 
 void Turtle::penDown()
 {
-    main_turtle.pendown = true;
+    mainTurtle.pendown = true;
 }
 
 void Turtle::beginFill()
 {
-    main_turtle.filled = true;
-    main_turtle_poly_vertex_count = 0;
+    mainTurtle.filled = true;
+    mainTurtlePolyVertexCount = 0;
 }
 
 void Turtle::endFill()
@@ -173,22 +173,22 @@ void Turtle::endFill()
     double temp;                            // temporary variable for sorting
 
     //  loop through the rows of the image
-    for (y = -(main_field_height/2); y < main_field_height/2; y++) {
+    for (y = -(mainFieldHeight / 2); y < mainFieldHeight / 2; y++) {
 
         //  build a list of polygon intercepts on the current line
         nodes = 0;
-        j = main_turtle_poly_vertex_count-1;
-        for (i = 0; i < main_turtle_poly_vertex_count; i++) {
-            if ((main_turtle_polyY[i] <  (double)y &&
-                 main_turtle_polyY[j] >= (double)y) ||
-                (main_turtle_polyY[j] <  (double)y &&
-                 main_turtle_polyY[i] >= (double)y)) {
+        j = mainTurtlePolyVertexCount - 1;
+        for (i = 0; i < mainTurtlePolyVertexCount; i++) {
+            if ((mainTurtlePolyY[i] < (double)y &&
+                 mainTurtlePolyY[j] >= (double)y) ||
+                (mainTurtlePolyY[j] < (double)y &&
+                 mainTurtlePolyY[i] >= (double)y)) {
 
                 // intercept found; record it
-                nodeX[nodes++] = (main_turtle_polyX[i] +
-                                  ((double)y - main_turtle_polyY[i]) /
-                                  (main_turtle_polyY[j] - main_turtle_polyY[i]) *
-                                  (main_turtle_polyX[j] - main_turtle_polyX[i]));
+                nodeX[nodes++] = (mainTurtlePolyX[i] +
+                                  ((double)y - mainTurtlePolyY[i]) /
+                                  (mainTurtlePolyY[j] - mainTurtlePolyY[i]) *
+                                  (mainTurtlePolyX[j] - mainTurtlePolyX[i]));
             }
             j = i;
             if (nodes >= MAX_POLYGON_VERTICES) {
@@ -214,16 +214,16 @@ void Turtle::endFill()
         }
     }
 
-    main_turtle.filled = false;
+    mainTurtle.filled = false;
 
     // redraw polygon (filling is imperfect and can occasionally occlude sides)
-    for (i = 0; i < main_turtle_poly_vertex_count; i++) {
-        int x0 = (int)round(main_turtle_polyX[i]);
-        int y0 = (int)round(main_turtle_polyY[i]);
-        int x1 = (int)round(main_turtle_polyX[(i+1) %
-                                              main_turtle_poly_vertex_count]);
-        int y1 = (int)round(main_turtle_polyY[(i+1) %
-                                              main_turtle_poly_vertex_count]);
+    for (i = 0; i < mainTurtlePolyVertexCount; i++) {
+        int x0 = (int)round(mainTurtlePolyX[i]);
+        int y0 = (int)round(mainTurtlePolyY[i]);
+        int x1 = (int)round(mainTurtlePolyX[(i + 1) %
+                                            mainTurtlePolyVertexCount]);
+        int y1 = (int)round(mainTurtlePolyY[(i + 1) %
+                                            mainTurtlePolyVertexCount]);
         drawLine(x0, y0, x1, y1);
     }
 }
@@ -236,81 +236,81 @@ void Turtle::goTo(int x, int y)
 void Turtle::goTo(double x, double y)
 {
     // draw line if pen is down
-    if (main_turtle.pendown) {
-        drawLine((int)round(main_turtle.xpos),
-                 (int)round(main_turtle.ypos),
+    if (mainTurtle.pendown) {
+        drawLine((int)round(mainTurtle.xpos),
+                 (int)round(mainTurtle.ypos),
                  (int)round(x),
                  (int)round(y));
     }
 
     // change current turtle position
-    main_turtle.xpos = (double)x;
-    main_turtle.ypos = (double)y;
+    mainTurtle.xpos = (double)x;
+    mainTurtle.ypos = (double)y;
 
     // track coordinates for filling
-    if (main_turtle.filled && main_turtle.pendown &&
-        main_turtle_poly_vertex_count < MAX_POLYGON_VERTICES) {
-        main_turtle_polyX[main_turtle_poly_vertex_count] = x;
-        main_turtle_polyY[main_turtle_poly_vertex_count] = y;
-        main_turtle_poly_vertex_count++;
+    if (mainTurtle.filled && mainTurtle.pendown &&
+        mainTurtlePolyVertexCount < MAX_POLYGON_VERTICES) {
+        mainTurtlePolyX[mainTurtlePolyVertexCount] = x;
+        mainTurtlePolyY[mainTurtlePolyVertexCount] = y;
+        mainTurtlePolyVertexCount++;
     }
 }
 
 void Turtle::setHeading(double angle)
 {
-    main_turtle.heading = angle;
+    mainTurtle.heading = angle;
 }
 
 void Turtle::setPenColor(int red, int green, int blue)
 {
-    main_turtle.pen_color.red = red;
-    main_turtle.pen_color.green = green;
-    main_turtle.pen_color.blue = blue;
+    mainTurtle.penColor.red = red;
+    mainTurtle.penColor.green = green;
+    mainTurtle.penColor.blue = blue;
 }
 
 void Turtle::setFillColor(int red, int green, int blue)
 {
-    main_turtle.fill_color.red = red;
-    main_turtle.fill_color.green = green;
-    main_turtle.fill_color.blue = blue;
+    mainTurtle.fillColor.red = red;
+    mainTurtle.fillColor.green = green;
+    mainTurtle.fillColor.blue = blue;
 }
 
 void Turtle::dot()
 {
     // draw a pixel at the current location, regardless of pen status
-    drawPixel((int)round(main_turtle.xpos),
-              (int)round(main_turtle.ypos));
+    drawPixel((int)round(mainTurtle.xpos),
+              (int)round(mainTurtle.ypos));
 }
 
 
 
 void Turtle::drawPixel(int x, int y)
 {
-    if (x < (- main_field_width/2)  || x > (main_field_width/2) ||
-        y < (-main_field_height/2) || y > (main_field_height/2)) {
+    if (x < (- mainFieldWidth / 2) || x > (mainFieldWidth / 2) ||
+        y < (-mainFieldHeight / 2) || y > (mainFieldHeight / 2)) {
 
         // only print the first 100 error messages (prevents runaway output)
-        if (++num_pixels_out_of_bounds < 100) {
+        if (++numPixelsOutOfBounds < 100) {
             fprintf(stderr, "Pixel out of bounds: (%d,%d)\n", x, y);
         }
         return;
     }
 
     // calculate pixel offset in image data array
-    int idx = main_field_width * (y+main_field_height/2)
-              + (x+main_field_width/2);
+    int idx = mainFieldWidth * (y + mainFieldHeight / 2)
+              + (x + mainFieldWidth / 2);
 
     // "draw" the pixel by setting the color values in the image matrix
-    if (idx >= 0 && idx < main_field_width*main_field_height) {
-        main_turtle_image[idx].red   = main_turtle.pen_color.red;
-        main_turtle_image[idx].green = main_turtle.pen_color.green;
-        main_turtle_image[idx].blue  = main_turtle.pen_color.blue;
+    if (idx >= 0 && idx < mainFieldWidth * mainFieldHeight) {
+        mainTurtleImage[idx].red   = mainTurtle.penColor.red;
+        mainTurtleImage[idx].green = mainTurtle.penColor.green;
+        mainTurtleImage[idx].blue  = mainTurtle.penColor.blue;
     }
 
     // track total pixels drawn and emit video frame if a frame interval has
     // been crossed (and only if video saving is enabled, of course)
-    if (main_field_save_frames &&
-        main_field_pixel_count++ % main_field_frame_interval == 0) {
+    if (mainFieldSaveFrames &&
+        mainFieldPixelCount++ % mainFieldFrameInterval == 0) {
         saveFrame();
     }
 }
@@ -318,14 +318,14 @@ void Turtle::drawPixel(int x, int y)
 void Turtle::fillPixel(int x, int y)
 {
     // calculate pixel offset in image data array
-    int idx = main_field_width * (y+main_field_height/2)
-              + (x+main_field_width/2);
+    int idx = mainFieldWidth * (y + mainFieldHeight / 2)
+              + (x + mainFieldWidth / 2);
 
     // check to make sure it's not out of bounds
-    if (idx >= 0 && idx < main_field_width*main_field_height) {
-        main_turtle_image[idx].red   = main_turtle.fill_color.red;
-        main_turtle_image[idx].green = main_turtle.fill_color.green;
-        main_turtle_image[idx].blue  = main_turtle.fill_color.blue;
+    if (idx >= 0 && idx < mainFieldWidth * mainFieldHeight) {
+        mainTurtleImage[idx].red   = mainTurtle.fillColor.red;
+        mainTurtleImage[idx].green = mainTurtle.fillColor.green;
+        mainTurtleImage[idx].blue  = mainTurtle.fillColor.blue;
     }
 }
 
@@ -334,8 +334,8 @@ void Turtle::drawLine(int x0, int y0, int x1, int y1)
     // uses a variant of Bresenham's line algorithm:
     //   https://en.wikipedia.org/wiki/Talk:Bresenham%27s_line_algorithm
 
-    int absX = ABS(x1-x0);          // absolute value of coordinate distances
-    int absY = ABS(y1-y0);
+    int absX = abs(x1-x0);          // absolute value of coordinate distances
+    int absY = abs(y1-y0);
     int offX = x0<x1 ? 1 : -1;      // line-drawing direction offsets
     int offY = y0<y1 ? 1 : -1;
     int x = x0;                     // incremental location
@@ -381,7 +381,7 @@ void Turtle::drawCircle(int x0, int y0, int radius)
     int y = 0;
     int switch_criteria = 1 - x;
 
-    if (main_turtle.filled) {
+    if (mainTurtle.filled) {
         fillCircle(x0, y0, radius);
     }
 
@@ -421,14 +421,14 @@ void Turtle::fillCircle(int x0, int y0, int radius) {
 
 void Turtle::fillCircle(int radius)
 {
-    fillCircle(main_turtle.xpos, main_turtle.ypos, radius);
+    fillCircle(mainTurtle.xpos, mainTurtle.ypos, radius);
 }
 
 void Turtle::drawTurtle()
 {
     // We are going to make our own backup of the turtle, since turtle_backup()
     // only gives us one level of undo.
-    turtle_t original_turtle = main_turtle;
+    turtle_t original_turtle = mainTurtle;
 
     penUp();
 
@@ -440,16 +440,16 @@ void Turtle::drawTurtle()
             strafeLeft(j * 7);
 
             setFillColor(
-                    main_turtle.pen_color.red,
-                    main_turtle.pen_color.green,
-                    main_turtle.pen_color.blue
+                    mainTurtle.penColor.red,
+                    mainTurtle.penColor.green,
+                    mainTurtle.penColor.blue
             );
             fillCircle(5);
 
             setFillColor(
-                    original_turtle.fill_color.red,
-                    original_turtle.fill_color.green,
-                    original_turtle.fill_color.blue
+                    original_turtle.fillColor.red,
+                    original_turtle.fillColor.green,
+                    original_turtle.fillColor.blue
             );
             fillCircle(3);
             restore();
@@ -460,16 +460,16 @@ void Turtle::drawTurtle()
     backup();
     forward(10);
     setFillColor(
-            main_turtle.pen_color.red,
-            main_turtle.pen_color.green,
-            main_turtle.pen_color.blue
+            mainTurtle.penColor.red,
+            mainTurtle.penColor.green,
+            mainTurtle.penColor.blue
     );
     fillCircle(5);
 
     setFillColor(
-            original_turtle.fill_color.red,
-            original_turtle.fill_color.green,
-            original_turtle.fill_color.blue
+            original_turtle.fillColor.red,
+            original_turtle.fillColor.green,
+            original_turtle.fillColor.blue
     );
     fillCircle(3);
     restore();
@@ -478,53 +478,53 @@ void Turtle::drawTurtle()
     for (int i = 9; i >= 0; i-=4) {
         backup();
         setFillColor(
-                main_turtle.pen_color.red,
-                main_turtle.pen_color.green,
-                main_turtle.pen_color.blue
+                mainTurtle.penColor.red,
+                mainTurtle.penColor.green,
+                mainTurtle.penColor.blue
         );
         fillCircle(i+2);
 
         setFillColor(
-                original_turtle.fill_color.red,
-                original_turtle.fill_color.green,
-                original_turtle.fill_color.blue
+                original_turtle.fillColor.red,
+                original_turtle.fillColor.green,
+                original_turtle.fillColor.blue
         );
         fillCircle(i);
         restore();
     }
 
     // Restore the original turtle position:
-    main_turtle = original_turtle;
+    mainTurtle = original_turtle;
 }
 
 void Turtle::beginVideo(int pixels_per_frame)
 {
-    main_field_save_frames = true;
-    main_field_frame_count = 0;
-    main_field_frame_interval = pixels_per_frame;
-    main_field_pixel_count = 0;
+    mainFieldSaveFrames = true;
+    mainFieldFrameCount = 0;
+    mainFieldFrameInterval = pixels_per_frame;
+    mainFieldPixelCount = 0;
 }
 
 void Turtle::saveFrame()
 {
     char filename[32];
-    sprintf(filename, "frame%05d.bmp", ++main_field_frame_count);
+    sprintf(filename, "frame%05d.bmp", ++mainFieldFrameCount);
     saveBMP(filename);
 }
 
 void Turtle::endVideo()
 {
-    main_field_save_frames = false;
+    mainFieldSaveFrames = false;
 }
 
 double Turtle::getX()
 {
-    return main_turtle.xpos;
+    return mainTurtle.xpos;
 }
 
 double Turtle::getY()
 {
-    return main_turtle.ypos;
+    return mainTurtle.ypos;
 }
 
 void Turtle::drawInt(int value)
@@ -541,7 +541,7 @@ void Turtle::drawInt(int value)
         for (int y=0; y<5; y++) {
             for (int x=0; x<4; x++) {
                 if (TURTLE_DIGITS[digit][y*4+x] == 1) {
-                    drawPixel(main_turtle.xpos + i*5 + x, main_turtle.ypos - y);
+                    drawPixel(mainTurtle.xpos + i * 5 + x, mainTurtle.ypos - y);
                 }
             }
         }
@@ -552,9 +552,9 @@ void Turtle::drawInt(int value)
 void Turtle::cleanup()
 {
     // free image array if allocated
-    if (main_turtle_image != NULL) {
-        free(main_turtle_image);
-        main_turtle_image = NULL;
+    if (mainTurtleImage != nullptr) {
+        free(mainTurtleImage);
+        mainTurtleImage = nullptr;
     }
 }
 
@@ -568,10 +568,10 @@ void Turtle::saveBMP(const char *filename)
     int bytesPerLine;
     unsigned char *line;
     FILE *file;
-    struct BMPHeader bmph;
-    int width = main_field_width;
-    int height = main_field_height;
-    char *rgb = (char*)main_turtle_image;
+    BMPHeader bmph{};
+    int width = mainFieldWidth;
+    int height = mainFieldHeight;
+    char *rgb = (char*)mainTurtleImage;
 
     // the length of each line must be a multiple of 4 bytes
     bytesPerLine = (3 * (width + 1) / 4) * 4;
@@ -593,7 +593,7 @@ void Turtle::saveBMP(const char *filename)
     bmph.biClrImportant = 0;
 
     file = fopen (filename, "wb");
-    if (file == NULL) {
+    if (file == nullptr) {
         fprintf(stderr, "Could not write to file: %s\n", filename);
         exit(EXIT_FAILURE);
     }
@@ -616,7 +616,7 @@ void Turtle::saveBMP(const char *filename)
 
     line = (unsigned char*)malloc(bytesPerLine);
     memset(line, 0, bytesPerLine);
-    if (line == NULL) {
+    if (line == nullptr) {
         fprintf(stderr, "Can't allocate memory for BMP file.\n");
         exit(EXIT_FAILURE);
     }

@@ -35,10 +35,6 @@
 #include <cstring>
 #include <cmath>
 
-#define ABS(X) ((X)>0 ? (X) : (-(X)))
-
-#define PI 3.141592653589793
-
 #define MAX_POLYGON_VERTICES 128
 
 // pixel data (red, green, blue triplet)
@@ -56,8 +52,8 @@ typedef struct {
     double ypos;       // (uses floating-point numbers for
     double heading;    //  increased accuracy)
 
-    rgb_t pen_color;   // current pen color
-    rgb_t fill_color;  // current fill color
+    rgb_t penColor;   // current pen color
+    rgb_t fillColor;  // current fill color
     bool pendown;     // currently drawing?
     bool filled;      // currently filling?
 } turtle_t;
@@ -81,25 +77,25 @@ struct BMPHeader {
 };
 
 class Turtle {
-    turtle_t main_turtle;
-    turtle_t backup_turtle;
+    turtle_t mainTurtle{};
+    turtle_t backupTurtle{};
 
-    rgb_t *main_turtle_image = nullptr;        // 2d pixel data field
+    rgb_t *mainTurtleImage = nullptr;        // 2d pixel data field
 
-    int main_field_width = 0;           // size in pixels
-    int main_field_height = 0;
+    int mainFieldWidth = 0;           // size in pixels
+    int mainFieldHeight = 0;
 
-    bool main_field_save_frames = false;  // currently saving video frames?
-    int main_field_frame_count = 0;   // current video frame counter
-    int main_field_frame_interval = 10;  // pixels per frame
-    int main_field_pixel_count = 0;   // total pixels drawn by turtle since
+    bool mainFieldSaveFrames = false;  // currently saving video frames?
+    int mainFieldFrameCount = 0;   // current video frame counter
+    int mainFieldFrameInterval = 10;  // pixels per frame
+    int mainFieldPixelCount = 0;   // total pixels drawn by turtle since
 
     // beginning of video
-    int main_turtle_poly_vertex_count = 0;       // polygon vertex count
-    double main_turtle_polyX[MAX_POLYGON_VERTICES]; // polygon vertex x-coords
-    double main_turtle_polyY[MAX_POLYGON_VERTICES]; // polygon vertex y-coords
+    int mainTurtlePolyVertexCount = 0;       // polygon vertex count
+    double mainTurtlePolyX[MAX_POLYGON_VERTICES]{}; // polygon vertex x-coords
+    double mainTurtlePolyY[MAX_POLYGON_VERTICES]{}; // polygon vertex y-coords
 
-    static size_t num_pixels_out_of_bounds;
+    size_t numPixelsOutOfBounds;
 
     const int TURTLE_DIGITS[10][20] = {
 

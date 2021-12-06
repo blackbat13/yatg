@@ -1,10 +1,10 @@
 /*
-    turtle.hpp
+    yatg.hpp
 
     Simple array-based turtle graphics engine in CPP.
     Exports to BMP files.
 
-    (header info only; see turtle.c for implementation)
+    (header info only; see yatg.cpp for implementation)
 
     Author: Damian Kurpiewski, December 2021
 

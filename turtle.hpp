@@ -1,10 +1,8 @@
 /*
-    yatg.hpp
+    turtle.hpp
 
     Simple array-based turtle graphics engine in CPP.
     Exports to BMP files.
-
-    (header info only; see yatg.cpp for implementation)
 
     Author: Damian Kurpiewski, December 2021
 
@@ -37,26 +35,22 @@
 
 #define MAX_POLYGON_VERTICES 128
 
-// pixel data (red, green, blue triplet)
-typedef struct {
+struct rgb {
     unsigned char red;
     unsigned char green;
     unsigned char blue;
-} rgb_t;
+};
 
-
-/**  TURTLE STATE  **/
-
-typedef struct {
+struct turtleState {
     double xpos;       // current position and heading
     double ypos;       // (uses floating-point numbers for
     double heading;    //  increased accuracy)
 
-    rgb_t penColor;   // current pen color
-    rgb_t fillColor;  // current fill color
+    rgb strokeColor;   // current pen color
+    rgb fillColor;  // current fill color
     bool pendown;     // currently drawing?
     bool filled;      // currently filling?
-} turtle_t;
+};
 
 struct BMPHeader {
     char bfType[2];       // "BM"
@@ -77,13 +71,13 @@ struct BMPHeader {
 };
 
 class Turtle {
-    turtle_t mainTurtle{};
-    turtle_t backupTurtle{};
+    turtleState mainTurtle{};
+    turtleState backupTurtle{};
 
-    rgb_t *mainTurtleImage = nullptr;        // 2d pixel data field
+    rgb *mainTurtleImage = nullptr;        // 2d pixel data field
 
-    int mainFieldWidth = 0;           // size in pixels
-    int mainFieldHeight = 0;
+    unsigned int mainFieldWidth = 0;           // size in pixels
+    unsigned int mainFieldHeight = 0;
 
     bool mainFieldSaveFrames = false;  // currently saving video frames?
     int mainFieldFrameCount = 0;   // current video frame counter
@@ -95,93 +89,90 @@ class Turtle {
     double mainTurtlePolyX[MAX_POLYGON_VERTICES]{}; // polygon vertex x-coords
     double mainTurtlePolyY[MAX_POLYGON_VERTICES]{}; // polygon vertex y-coords
 
-    size_t numPixelsOutOfBounds;
+    unsigned long long int numPixelsOutOfBounds;
 
     const int TURTLE_DIGITS[10][20] = {
 
             {0, 1, 1, 0,       // 0
-                    1, 0, 0, 1,
-                    1, 0, 0, 1,
-                    1, 0, 0, 1,
-                    0, 1, 1, 0},
+                1, 0, 0, 1,
+                1, 0, 0, 1,
+                1, 0, 0, 1,
+                0, 1, 1, 0},
 
             {0, 1, 1, 0,       // 1
-                    0, 0, 1, 0,
-                    0, 0, 1, 0,
-                    0, 0, 1, 0,
-                    0, 1, 1, 1},
+                0, 0, 1, 0,
+                0, 0, 1, 0,
+                0, 0, 1, 0,
+                0, 1, 1, 1},
 
             {1, 1, 1, 0,       // 2
-                    0, 0, 0, 1,
-                    0, 1, 1, 0,
-                    1, 0, 0, 0,
-                    1, 1, 1, 1},
+                0, 0, 0, 1,
+                0, 1, 1, 0,
+                1, 0, 0, 0,
+                1, 1, 1, 1},
 
             {1, 1, 1, 0,       // 3
-                    0, 0, 0, 1,
-                    0, 1, 1, 0,
-                    0, 0, 0, 1,
-                    1, 1, 1, 0},
+                0, 0, 0, 1,
+                0, 1, 1, 0,
+                0, 0, 0, 1,
+                1, 1, 1, 0},
 
             {0, 1, 0, 1,       // 4
-                    0, 1, 0, 1,
-                    0, 1, 1, 1,
-                    0, 0, 0, 1,
-                    0, 0, 0, 1},
+                0, 1, 0, 1,
+                0, 1, 1, 1,
+                0, 0, 0, 1,
+                0, 0, 0, 1},
 
             {1, 1, 1, 1,       // 5
-                    1, 0, 0, 0,
-                    1, 1, 1, 0,
-                    0, 0, 0, 1,
-                    1, 1, 1, 0},
+                1, 0, 0, 0,
+                1, 1, 1, 0,
+                0, 0, 0, 1,
+                1, 1, 1, 0},
 
             {0, 1, 1, 0,       // 6
-                    1, 0, 0, 0,
-                    1, 1, 1, 0,
-                    1, 0, 0, 1,
-                    0, 1, 1, 0},
+                1, 0, 0, 0,
+                1, 1, 1, 0,
+                1, 0, 0, 1,
+                0, 1, 1, 0},
 
             {1, 1, 1, 1,       // 7
-                    0, 0, 0, 1,
-                    0, 0, 1, 0,
-                    0, 1, 0, 0,
-                    0, 1, 0, 0},
+                0, 0, 0, 1,
+                0, 0, 1, 0,
+                0, 1, 0, 0,
+                0, 1, 0, 0},
 
             {0, 1, 1, 0,       // 8
-                    1, 0, 0, 1,
-                    0, 1, 1, 0,
-                    1, 0, 0, 1,
-                    0, 1, 1, 0},
+                1, 0, 0, 1,
+                0, 1, 1, 0,
+                1, 0, 0, 1,
+                0, 1, 1, 0},
 
             {0, 1, 1, 0,       // 9
-                    1, 0, 0, 1,
-                    0, 1, 1, 1,
-                    0, 0, 0, 1,
-                    0, 1, 1, 0},
+                1, 0, 0, 1,
+                0, 1, 1, 1,
+                0, 0, 0, 1,
+                0, 1, 1, 0},
 
     };
 public:
-    /*
-    Initialize the 2d field that the turtle moves on.
-    */
-    Turtle(int width, int height) {
+
+    /**
+     * Initializes the 2d field that the turtle moves on.
+     * @param width field width
+     * @param height field height
+     */
+    Turtle(unsigned int width, unsigned int height) {
         numPixelsOutOfBounds = 0;
 
-        auto total_size = sizeof(rgb_t) * width * height;
-
-        // free previous image array if necessary
-        if (mainTurtleImage != nullptr) {
-            free(mainTurtleImage);
-            mainTurtleImage = nullptr;
-        }
+        auto totalSize = sizeof(rgb) * width * height;
 
         // allocate new image and initialize it to white
-        mainTurtleImage = (rgb_t *) malloc(total_size);
+        mainTurtleImage = (rgb *) malloc(totalSize);
         if (mainTurtleImage == nullptr) {
             fprintf(stderr, "Can't allocate memory for turtle image.\n");
             exit(EXIT_FAILURE);
         }
-        memset(mainTurtleImage, 255, total_size);
+        memset(mainTurtleImage, 255, totalSize);
 
         // save field size for later
         mainFieldWidth = width;
@@ -192,17 +183,19 @@ public:
 
         // reset turtle position and color
         reset();
+
+        // create backup at the initial position
+        backup();
     }
 
     ~Turtle() {
         cleanup();
     }
 
-    /*
-        Reset the turtle's location, orientation, color, and pen status to the
-        default values: center of the field (0,0), facing right (0 degrees), black,
-        and down, respectively).
-    */
+    /**
+     * Resets the turtle's location, orientation, color, and pen status to the default values:
+     * center of the field (0,0), facing right (0 degrees), black stroke and green fill color, pen down.
+     */
     void reset() {
         // move turtle to middle of the field
         mainTurtle.xpos = 0.0;
@@ -211,10 +204,10 @@ public:
         // orient to the right (0 deg)
         mainTurtle.heading = 0.0;
 
-        // default draw color is black
-        mainTurtle.penColor.red = 0;
-        mainTurtle.penColor.green = 0;
-        mainTurtle.penColor.blue = 0;
+        // default stroke color is black
+        mainTurtle.strokeColor.red = 0;
+        mainTurtle.strokeColor.green = 0;
+        mainTurtle.strokeColor.blue = 0;
 
         // default fill color is black
         mainTurtle.fillColor.red = 0;
@@ -230,28 +223,28 @@ public:
     }
 
 
-    /*
-        Creates a backup of the current turtle. Once you have a backup you can
-        restore from a backup using turtle_restore(); This is useful in complex
-        drawing situations.
-    */
+    /**
+     * Creates a backup of the current turtle.
+     * The backup can be restored by using restore().
+     * Useful in complex drawing situations.
+     */
     void backup() {
         backupTurtle = mainTurtle;
     }
 
 
-    /*
-        Restores the turtle from the backup. Note that the behavior is undefined
-        if you have not first called turtle_backup().
-    */
+    /**
+     * Restores the turtle from the backup.
+     */
     void restore() {
         mainTurtle = backupTurtle;
     }
 
 
-    /*
-        Move the turtle forward, drawing a straight line if the pen is down.
-    */
+    /**
+     * Moves the turtle forward, drawing a straight line if the pen is down.
+     * @param pixels movement distance
+     */
     void forward(int pixels) {
         // calculate (x,y) movement vector from heading
         double radians = mainTurtle.heading * M_PI / 180.0;
@@ -263,29 +256,40 @@ public:
     }
 
 
-    /*
-        Move the turtle backward, drawing a straight line if the pen is down.
-    */
+    /**
+     * Moves the turtle backward, drawing a straight line if the pen is down.
+     * @param pixels movement distance
+     */
     void backward(int pixels) {
         // opposite of "forward"
         forward(-pixels);
     }
 
+    /**
+     * Moves the turtle left.
+     * @param pixels movement distance
+     */
     void strafeLeft(int pixels) {
         turnLeft(90);
         forward(pixels);
         turnRight(90);
     }
 
+    /**
+     * Moves the turtle right.
+     * @param pixels movement distance
+     */
     void strafeRight(int pixels) {
         turnRight(90);
         forward(pixels);
         turnLeft(90);
     }
 
-    /*
-        Turn the turtle to the left by the specified number of degrees.
-    */
+
+    /**
+     * Turns the turtle to the left by the specified number of degrees.
+     * @param angle
+     */
     void turnLeft(double angle) {
         // rotate turtle heading
         mainTurtle.heading += angle;
@@ -299,45 +303,47 @@ public:
     }
 
 
-    /*
-        Turn the turtle to the right by the specified number of degrees.
-    */
+    /**
+     * Turns the turtle to the right by the specified number of degrees.
+     * @param angle
+     */
     void turnRight(double angle) {
         // opposite of "turn left"
         turnLeft(-angle);
     }
 
 
-    /*
-        Set the pen status to "up" (do not draw).
-    */
+    /**
+     * Sets the pen status to "up" (do not draw).
+     */
     void penUp() {
         mainTurtle.pendown = false;
     }
 
 
-    /*
-        Set the pen status to "down" (draw).
-    */
+    /**
+     * Sets the pen status to "down" (draw).
+     */
     void penDown() {
         mainTurtle.pendown = true;
     }
 
 
-    /*
-        Start filling. Call this before drawing a polygon to activate the
-        bookkeeping required to run the filling algorithm later.
-    */
+    /**
+     * Starts filling.
+     * Call this before drawing a polygon to activate the bookkeeping required to run the filling algorithm later.
+     */
     void beginFill() {
         mainTurtle.filled = true;
         mainTurtlePolyVertexCount = 0;
     }
 
 
-    /*
-        End filling. Call this after drawing a polygon to trigger the fill
-        algorithm. The filled polygon may have up to 128 sides.
-    */
+    /**
+     * Ends filling.
+     * Call this after drawing a polygon to trigger the fill algorithm.
+     * The filled polygon may have up to 128 sides.
+     */
     void endFill() {
         // based on public-domain fill algorithm in C by Darel Rex Finley, 2007
         //   from http://alienryderflex.com/polygon_fill/
@@ -404,20 +410,23 @@ public:
     }
 
 
-    /*
-        Move the turtle to the specified location, drawing a straight line if the
-        pen is down. Takes integer coordinate parameters.
-    */
+    /**
+     * Moves the turtle to the specified location, drawing a straight line if the pen is down.
+     * Takes integer coordinate parameters.
+     * @param x
+     * @param y
+     */
     void goTo(int x, int y) {
         goTo((double) x, (double) y);
     }
 
 
-    /*
-        Move the turtle to the specified location, drawing a straight line if the
-        pen is down. Takes real-numbered coordinate parameters, and is also used
-        internally to implement forward and backward motion.
-    */
+    /**
+     * Moves the turtle to the specified location, drawing a straight line if the pen is down.
+     * Takes real-numbered coordinate parameters, and is also used internally to implement forward and backward motion.
+     * @param x
+     * @param y
+     */
     void goTo(double x, double y) {
         // draw line if pen is down
         if (mainTurtle.pendown) {
@@ -441,32 +450,40 @@ public:
     }
 
 
-    /*
-        Rotate the turtle to the given heading (in degrees). 0 degrees means
-        facing to the right; 90 degrees means facing straight up.
-    */
+    /**
+     * Rotates the turtle to the given heading (in degrees).
+     * 0 degrees means facing to the right.
+     * 90 degrees means facing straight up.
+     * @param angle
+     */
     void setHeading(double angle) {
         mainTurtle.heading = angle;
     }
 
 
-    /*
-        Set the current drawing color. Each component (red, green, and blue) may
-        be any value between 0 and 255 (inclusive). Black is (0,0,0) and white is
-        (255,255,255).
-    */
+    /**
+     * Set the current drawing color.
+     * Each component (red, green, and blue) may be any value between 0 and 255 (inclusive).
+     * Black is (0,0,0) and white is (255,255,255).
+     * @param red
+     * @param green
+     * @param blue
+     */
     void setPenColor(int red, int green, int blue) {
-        mainTurtle.penColor.red = red;
-        mainTurtle.penColor.green = green;
-        mainTurtle.penColor.blue = blue;
+        mainTurtle.strokeColor.red = red;
+        mainTurtle.strokeColor.green = green;
+        mainTurtle.strokeColor.blue = blue;
     }
 
 
-    /*
-        Set the current filling color. Each component (red, green, and blue) may
-        be any value between 0 and 255 (inclusive). Black is (0,0,0) and white is
-        (255,255,255).
-    */
+    /**
+     * Set the current filling color.
+     * Each component (red, green, and blue) may be any value between 0 and 255 (inclusive).
+     * Black is (0,0,0) and white is (255,255,255).
+     * @param red
+     * @param green
+     * @param blue
+     */
     void setFillColor(int red, int green, int blue) {
         mainTurtle.fillColor.red = red;
         mainTurtle.fillColor.green = green;
@@ -474,9 +491,9 @@ public:
     }
 
 
-    /*
-        Draw a 1-pixel dot at the current location, regardless of pen status.
-    */
+    /**
+     * Draws a 1-pixel dot at the current location, regardless of pen status.
+     */
     void dot() {
         // draw a pixel at the current location, regardless of pen status
         drawPixel((int) round(mainTurtle.xpos),
@@ -484,10 +501,12 @@ public:
     }
 
 
-    /*
-        Draw a 1-pixel dot at the given location using the current draw color,
-        regardless of current turtle location or pen status.
-    */
+    /**
+     * Draw a 1-pixel dot at the given location using the current draw color,
+     * regardless of current turtle location or pen status.
+     * @param x
+     * @param y
+     */
     void drawPixel(int x, int y) {
         if (x < (-mainFieldWidth / 2) || x > (mainFieldWidth / 2) ||
             y < (-mainFieldHeight / 2) || y > (mainFieldHeight / 2)) {
@@ -505,9 +524,9 @@ public:
 
         // "draw" the pixel by setting the color values in the image matrix
         if (idx >= 0 && idx < mainFieldWidth * mainFieldHeight) {
-            mainTurtleImage[idx].red = mainTurtle.penColor.red;
-            mainTurtleImage[idx].green = mainTurtle.penColor.green;
-            mainTurtleImage[idx].blue = mainTurtle.penColor.blue;
+            mainTurtleImage[idx].red = mainTurtle.strokeColor.red;
+            mainTurtleImage[idx].green = mainTurtle.strokeColor.green;
+            mainTurtleImage[idx].blue = mainTurtle.strokeColor.blue;
         }
 
         // track total pixels drawn and emit video frame if a frame interval has
@@ -519,10 +538,12 @@ public:
     }
 
 
-    /*
-        Draw a 1-pixel dot at the given location using the current fill color,
-        regardless of current turtle location or pen status.
-    */
+    /**
+     * Draws a 1-pixel dot at the given location using the current fill color,
+     * regardless of current turtle location or pen status.
+     * @param x
+     * @param y
+     */
     void fillPixel(int x, int y) {
         // calculate pixel offset in image data array
         int idx = mainFieldWidth * (y + mainFieldHeight / 2)
@@ -537,10 +558,13 @@ public:
     }
 
 
-    /*
-        Draw a straight line between the given coordinates, regardless of current
-        turtle location or pen status.
-    */
+    /**
+     * Draw a straight line between the given coordinates, regardless of current turtle location or pen status.
+     * @param x0
+     * @param y0
+     * @param x1
+     * @param y1
+     */
     void drawLine(int x0, int y0, int x1, int y1) {
         // uses a variant of Bresenham's line algorithm:
         //   https://en.wikipedia.org/wiki/Talk:Bresenham%27s_line_algorithm
@@ -584,10 +608,12 @@ public:
     }
 
 
-    /*
-        Draw a circle at the given coordinates with the given radius, regardless of
-        current turtle location or pen status.
-    */
+    /**
+     * Draws a circle at the given coordinates with the given radius, regardless of current turtle location or pen status.
+     * @param x0
+     * @param y0
+     * @param radius
+     */
     void drawCircle(int x0, int y0, int radius) {
         // implementation based on midpoint circle algorithm:
         //   https://en.wikipedia.org/wiki/Midpoint_circle_algorithm
@@ -620,10 +646,12 @@ public:
     }
 
 
-    /*
-        Fill a circle at the given coordinates with the given radius, regardless of
-        current turtle location or pen status.
-    */
+    /**
+     * Fill a circle at the given coordinates with the given radius, regardless of current turtle location or pen status.
+     * @param x0
+     * @param y0
+     * @param radius
+     */
     void fillCircle(int x0, int y0, int radius) {
         int rad_sq = radius * radius;
 
@@ -638,21 +666,23 @@ public:
         }
     }
 
-    /*
-        Fill a circle at the current coordinates with the given radius.
-    */
+
+    /**
+     * Fills a circle at the current coordinates with the given radius.
+     * @param radius
+     */
     void fillCircle(int radius) {
         fillCircle(mainTurtle.xpos, mainTurtle.ypos, radius);
     }
 
 
-    /*
-        Draw a turtle at the current pen location.
-    */
+    /**
+     * Draws a turtle at the current location.
+     */
     void drawTurtle() {
         // We are going to make our own backup of the turtle, since turtle_backup()
         // only gives us one level of undo.
-        turtle_t original_turtle = mainTurtle;
+        turtleState original_turtle = mainTurtle;
 
         penUp();
 
@@ -664,9 +694,9 @@ public:
                 strafeLeft(j * 7);
 
                 setFillColor(
-                        mainTurtle.penColor.red,
-                        mainTurtle.penColor.green,
-                        mainTurtle.penColor.blue
+                        mainTurtle.strokeColor.red,
+                        mainTurtle.strokeColor.green,
+                        mainTurtle.strokeColor.blue
                 );
                 fillCircle(5);
 
@@ -684,9 +714,9 @@ public:
         backup();
         forward(10);
         setFillColor(
-                mainTurtle.penColor.red,
-                mainTurtle.penColor.green,
-                mainTurtle.penColor.blue
+                mainTurtle.strokeColor.red,
+                mainTurtle.strokeColor.green,
+                mainTurtle.strokeColor.blue
         );
         fillCircle(5);
 
@@ -702,9 +732,9 @@ public:
         for (int i = 9; i >= 0; i -= 4) {
             backup();
             setFillColor(
-                    mainTurtle.penColor.red,
-                    mainTurtle.penColor.green,
-                    mainTurtle.penColor.blue
+                    mainTurtle.strokeColor.red,
+                    mainTurtle.strokeColor.green,
+                    mainTurtle.strokeColor.blue
             );
             fillCircle(i + 2);
 
@@ -722,17 +752,18 @@ public:
     }
 
 
-    /*
-        Save current field to a .bmp file.
-    */
+    /**
+     * Saves current field to a .bmp file.
+     * @param filename
+     */
     void saveBMP(const char *filename) {
         int i, j, ipos;
-        int bytesPerLine;
+        unsigned int bytesPerLine;
         unsigned char *line;
         FILE *file;
         BMPHeader bmph{};
-        int width = mainFieldWidth;
-        int height = mainFieldHeight;
+        auto width = mainFieldWidth;
+        auto height = mainFieldHeight;
         char *rgb = (char *) mainTurtleImage;
 
         // the length of each line must be a multiple of 4 bytes
@@ -798,25 +829,26 @@ public:
     }
 
 
-    /*
-        Enable video output. When enabled, periodic frame bitmaps will be saved
-        with sequentially-ordered filenames matching the following pattern:
-        "frameXXXX.bmp" (X is a digit). Frames are emitted after a regular number of
-        pixels have been drawn; this number is set by the parameter to this
-        function. Some experimentation may be required to find a optimal values for
-        different shapes.
-    */
-    void beginVideo(int pixels_per_frame) {
+    /**
+     * Enables the video output.
+     * When enabled, periodic frame bitmaps will be saved with sequentially-ordered filenames matching the following pattern:
+     * "frameXXXX.bmp" (X is a digit).
+     * Frames are emitted after a regular number of pixels have been drawn.
+     * This number is set by the parameter to this function.
+     * Some experimentation may be required to find a optimal values for different shapes.
+     * @param pixelsPerFrame
+     */
+    void beginVideo(int pixelsPerFrame) {
         mainFieldSaveFrames = true;
         mainFieldFrameCount = 0;
-        mainFieldFrameInterval = pixels_per_frame;
+        mainFieldFrameInterval = pixelsPerFrame;
         mainFieldPixelCount = 0;
     }
 
 
-    /*
-        Emit a single video frame containing the current field image.
-    */
+    /**
+     * Emits a single video frame containing the current field image.
+     */
     void saveFrame() {
         char filename[32];
         sprintf(filename, "frame%05d.bmp", ++mainFieldFrameCount);
@@ -824,64 +856,80 @@ public:
     }
 
 
-    /*
-        Disable video output.
-    */
+    /**
+     * Disables the video output.
+     */
     void endVideo() {
         mainFieldSaveFrames = false;
     }
 
 
-    /*
-        Returns the current x-coordinate.
-    */
+    /**
+     * Returns the current x-coordinate.
+     * @return current x-coordinate
+     */
     double getX() {
         return mainTurtle.xpos;
     }
 
 
-    /*
-        Returns the current x-coordinate.
-    */
+    /**
+     * Returns the current y-coordinate.
+     * @return current y-coordinate
+     */
     double getY() {
         return mainTurtle.ypos;
     }
 
+    /**
+     * Draws an integer at the current location.
+     * @param number number to draw
+     */
+    void drawInt(int number) {
+        int digitsCount = countDigits(number);
 
-    /*
-        Draw an integer at the current location.
-    */
-    void drawInt(int value) {
-        // calculate number of digits to draw
-        int ndigits = 1;
-        if (value > 9) {
-            ndigits = (int) (ceil(log10(value)));
-        }
-
-        // draw each digit
-        for (int i = ndigits - 1; i >= 0; i--) {
-            int digit = value % 10;
-            for (int y = 0; y < 5; y++) {
-                for (int x = 0; x < 4; x++) {
-                    if (TURTLE_DIGITS[digit][y * 4 + x] == 1) {
-                        drawPixel(mainTurtle.xpos + i * 5 + x, mainTurtle.ypos - y);
-                    }
-                }
-            }
-            value = value / 10;
+        for (int i = digitsCount - 1; i >= 0; i--) {
+            drawDigit(number % 10, i);
+            number = number / 10;
         }
     }
 
-
-    /*
-        Clean up any memory used by the turtle graphics system. Call this at the
-        end of the program to ensure there are no memory leaks.
-    */
+private:
+    /**
+     * Cleans up any memory used by the turtle graphics system.
+     */
     void cleanup() {
-        // free image array if allocated
         if (mainTurtleImage != nullptr) {
             free(mainTurtleImage);
             mainTurtleImage = nullptr;
+        }
+    }
+
+    /**
+     * Draws single digit depending on it location in the number
+     * @param digit digit to draw
+     * @param digitIndex digit location in the number
+     */
+    void drawDigit(unsigned char digit, int digitIndex) {
+        for (int y = 0; y < 5; y++) {
+            for (int x = 0; x < 4; x++) {
+                if (TURTLE_DIGITS[digit][y * 4 + x] == 1) {
+                    drawPixel(mainTurtle.xpos + digitIndex * 5 + x, mainTurtle.ypos - y);
+                }
+            }
+        }
+    }
+
+    /**
+     * Counts the number of digits in the given integer number.
+     * @param number
+     * @return Number of digits in number
+     */
+    static unsigned short countDigits(int number) {
+        if (number > 9) {
+            (int) (ceil(log10(number)));
+        } else {
+            return 1;
         }
     }
 };
